@@ -73,7 +73,24 @@ export const ApiData: React.FC = () => {
 
   return (
     <div>
-      <div>hi</div>
+      <div>
+        {api?.flights?.map((item : any,i)=>{
+          let arrival = item?.arrival;
+          console.log(arrival)
+          return (
+            <>
+              <div>
+                arrival --
+                <h4>AirPort : arrival.airport</h4>
+                <h4>city : arrival.city</h4>
+                <h4>time : arrival.time</h4>
+              </div>
+              <div key={i}> hi </div>
+            </>
+          );
+        }
+        )}
+      </div>
     </div>
   );
 };
