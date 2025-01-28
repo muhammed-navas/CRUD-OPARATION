@@ -1,12 +1,11 @@
-// import SimpleTodoApp from "./page/SimpleTodoApp"
-// import "./App.css";
-import { ApiData } from "./components/ApiData.js";
+import SimpleTodoApp from "./page/SimpleTodoApp"
+import "./App.css";
+
 
 const App = () => {
   return (
     <div className="main">
-      {/* <SimpleTodoApp /> */}
-      <ApiData />
+      <SimpleTodoApp />
     </div>
   );
 };
