@@ -1,42 +1,78 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FaTrash, FaEdit, FaPlus } from "react-icons/fa";
 import "./SimpleTodoApp.css";
+import axios from "axios";
 
 const SimpleTodoApp: React.FC = () => {
-  const [todo, setTodo] = useState<string>("");
+  const [todo, setTodo] = useState<string>(""); 
   const [todos, setTodos] = useState<string[]>([]);
   const [editing, setEditing] = useState(false);
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [editTodo, setEditTodo] = useState<string>("");
   const [checkboxes, setCheckboxes] = useState<boolean[]>([]);
 
-  const addClickHandle = () => {
+  const fetchTodos = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/api/todos");
+      setTodos(response.data);
+      setCheckboxes(response.data.map((item:any) => item.completed || false));
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  useEffect(()=>{
+    fetchTodos();
+  },[])
+
+  const addClickHandle = async () => {
     if (todo.trim() === "") return alert("Please fill the input field.");
-    setTodos((prev) => [...prev, todo]);
-    setCheckboxes((prev) => [...prev, false]); // Add a default unchecked state
-    setTodo("");
+    try {
+      await axios.post(
+        "http://localhost:5000/api/todos",
+       {title: todo}
+      );
+      setTodos((prev:any) => [...prev, { title: todo }]);
+      setCheckboxes((prev) => [...prev, false]); // Add a default unchecked state
+      setTodo("");
+    } catch (error) {
+      console.log(error);
+    }
   };
 
-  const deleteHandle = (index: number) => {
-    setTodos((prev) => prev.filter((_, i) => i !== index));
-    setCheckboxes((prev) => prev.filter((_, i) => i !== index));
+  const deleteHandle = async (index: number) => {
+    console.log(index,'index')
+    try {
+      await axios.delete(`http://localhost:5000/api/todos/${index}`);
+      setTodos((prev) => prev.filter((a:any) => a.id !== index));
+      setCheckboxes((prev) => prev.filter((_, i) => i !== index));
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const editHandle = (index: number) => {
     setEditing(true);
     setEditIndex(index);
-    setEditTodo(todos[index]);
+    const todoToEdit:any = todos.find((item: any) => item.id === index);
+    setEditTodo(todoToEdit?.title || "");
   };
 
   const updateClickHandle = () => {
     if (editTodo.trim() === "") return alert("Please fill the input field.");
-    if (editIndex !== null) {
+    try {
+      axios.put(`http://localhost:5000/api/todos/${editIndex}`, {
+        title: editTodo,
+      });
       setTodos((prev) =>
-        prev.map((item, i) => (i === editIndex ? editTodo : item))
+        prev.map((item: any) =>
+          item.id === editIndex ? { ...item, title: editTodo } : item
+        )
       );
       setEditing(false);
       setEditIndex(null);
       setEditTodo("");
+    } catch (error) {
+      console.log(error);
     }
   };
 
@@ -82,7 +118,7 @@ const SimpleTodoApp: React.FC = () => {
         )}
       </div>
       <ul className="todo-list">
-        {todos.map((item, i) => (
+        {todos.map((item:any, i) => (
           <li
             key={i}
             className={`todo-item ${checkboxes[i] ? "bg-dim" : "bg-white"}`}
@@ -93,13 +129,13 @@ const SimpleTodoApp: React.FC = () => {
                 type="checkbox"
                 checked={checkboxes[i]}
               />
-              <span>{item.toLocaleUpperCase()}</span>
+              <span>{item.title.toLocaleUpperCase()}</span>
             </div>
             <div className="todo-actions">
-              <button onClick={() => editHandle(i)} className="edit-button">
+              <button onClick={() => editHandle(item.id)} className="edit-button">
                 <FaEdit />
               </button>
-              <button onClick={() => deleteHandle(i)} className="delete-button">
+              <button onClick={() => deleteHandle(item.id)} className="delete-button">
                 <FaTrash />
               </button>
             </div>
